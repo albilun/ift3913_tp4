@@ -45,7 +45,13 @@ def iterateVersions(url,path):
     tempPath = path+"/temp"
 
     print("Cloning repository...")
-    repo = Repo.clone_from(url, tempPath)
+
+    try:
+        repo = Repo.clone_from(url, tempPath)
+    except:
+    	print("ERROR: The path is not empty!")
+    	sys.exit()
+
     print("DONE")
 
     print("Getting versions...")
@@ -88,8 +94,7 @@ def cleanTemp(path):
         print("DONE")
 
     except:
-        print("ERROR: Cleaning was unsuccessful, not enough permissions or file is in read-only!")
-        print("User has to delete '"+path+"' manually.")
+        print("WARNING: Cleaning was unsuccessful")
  
 #TODO
 def classMetrics(version,javaClass):
