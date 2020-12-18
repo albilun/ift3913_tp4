@@ -39,13 +39,54 @@ def listJavaFiles(filesArray):
             resultat.append(file)
     return resultat
 
-def gitListVersions(url,path):
+def iterateVersions(url,path):
 
-	tempPath = path+"/temp"
-	repo = Repo.clone_from(url, tempPath)
-	resultat = list(repo.iter_commits("MASTER"))
-	shutil.rmtree(tempPath)
-	return resultat
+    text = "Version,Class\n"
+    tempPath = path+"/temp"
+
+    print("Cloning repository...")
+    repo = Repo.clone_from(url, tempPath)
+    print("DONE")
+
+    print("Getting versions...")
+    versionsList = repo.git.rev_list('MASTER').split("\n")
+    versionsList = versionsList[0:10]
+    print("DONE")
+
+    print("Calculating metrics...")
+    for hexVersion in versionsList:
+        repo.git.reset('--hard',hexVersion)
+        text += iterateClasses(hexVersion,tempPath)
+    print("DONE")
+
+    return text
+
+def iterateClasses(version,tempPath):
+
+    resultat = ""
+    classList = listJavaFiles(listFiles(tempPath))
+
+    for javaClass in classList:
+        resultat += classMetrics(version,javaClass) + "\n"
+
+    return resultat
+
+def createCSV(text,path):
+
+    print("Building CSV file...")
+    csv = open("metrics.csv", "w")
+    csv.write(text)
+    csv.close()
+    print("DONE")
+        
+#TODO
+def classMetrics(version,javaClass):
+
+    resultat = ""+version+","+javaClass
+    return resultat
+
+
+
 
 
 if __name__ == "__main__":
@@ -56,6 +97,8 @@ if __name__ == "__main__":
 
     url = sys.argv[1]
     path = sys.argv[2]
-    result = gitListVersions(url,path)
 
-    print(result)
+    text = iterateVersions(url,path)
+    createCSV(text,path)
+
+    print("Proto finished with success!\nThe 'metrics.csv' file has been saved at "+path)
