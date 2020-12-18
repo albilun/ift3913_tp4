@@ -1,6 +1,6 @@
 import os
 import sys
-import re
+import shutil
 from git import Repo
 
 #returns a recursive list with all the files and sub-files inside a folder
@@ -78,27 +78,32 @@ def createCSV(text,path):
     csv.write(text)
     csv.close()
     print("DONE")
-        
+
+def cleanTemp(path):
+    
+    print("Cleaning up...")
+
+    try:
+        shutil.rmtree(path)
+        print("DONE")
+
+    except:
+        print("ERROR: Cleaning was unsuccessful, not enough permissions or file is in read-only!")
+        print("User has to delete '"+path+"' manually.")
+ 
 #TODO
 def classMetrics(version,javaClass):
 
     resultat = ""+version+","+javaClass
     return resultat
 
-
-
-
-
 if __name__ == "__main__":
-
-    #target = sys.argv[1]
-    #list = listFiles(target)
-    #result = listJavaFiles(list)
 
     url = sys.argv[1]
     path = sys.argv[2]
 
     text = iterateVersions(url,path)
     createCSV(text,path)
+    cleanTemp(path+"\\temp")
 
     print("Proto finished with success!\nThe 'metrics.csv' file has been saved at "+path)
