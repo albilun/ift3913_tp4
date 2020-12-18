@@ -30,6 +30,7 @@ def listFiles(path):
 
     return result
 
+#Takes an array of files and returns an array of only .java files
 def listJavaFiles(filesArray):
 
     resultat = []
@@ -39,6 +40,9 @@ def listJavaFiles(filesArray):
             resultat.append(file)
     return resultat
 
+#Clones the repository at path/temp
+#Then iterates between versions and calls iterateClasses()
+#Returns a String that will be saved as .csv by createCSV()
 def iterateVersions(url,path):
 
     text = "Version,Class\n"
@@ -56,7 +60,8 @@ def iterateVersions(url,path):
 
     print("Getting versions...")
     versionsList = repo.git.rev_list('MASTER').split("\n")
-    versionsList = versionsList[0:10]
+    #getting only 10 versions
+    versionsList = versionsList[0:10] #Remove this line to calculate all versions
     print("DONE")
 
     print("Calculating metrics...")
@@ -67,6 +72,7 @@ def iterateVersions(url,path):
 
     return text
 
+#Calls classMetrics() and writes the metrics of each class for a specific version
 def iterateClasses(version,tempPath):
 
     resultat = ""
@@ -77,6 +83,7 @@ def iterateClasses(version,tempPath):
 
     return resultat
 
+#Creates mertic.csv from text
 def createCSV(text,path):
 
     print("Building CSV file...")
@@ -85,14 +92,13 @@ def createCSV(text,path):
     csv.close()
     print("DONE")
 
+#Cleans all the downloaded files
 def cleanTemp(path):
     
     print("Cleaning up...")
-
     try:
         shutil.rmtree(path)
         print("DONE")
-
     except:
         print("WARNING: Cleaning was unsuccessful")
  
