@@ -1,6 +1,6 @@
 import os
 import sys
-import shutil
+import random
 from git import Repo
 import subprocess
 import statistics
@@ -61,9 +61,12 @@ def iterateVersions(url,path):
     print("DONE")
 
     print("Getting versions...")
-    versionsList = repo.git.rev_list('MASTER').split("\n")
-    percentage = int(len(versionsList)/10) 
-    versionsList = versionsList[0:percentage] #looking at the last 10% versions
+    tempList = repo.git.rev_list('MASTER').split("\n")
+    percentage = int(len(tempList)/10) 
+    #This is the correct line of code but it doesnt work because Java table overflows?
+    #versionsList = random.sample(tempList,percentage) #looking at the last 10% versions
+    #If you uncomment the line above, comment the line underneath this message
+    versionsList = tempList[0:10]
     print("DONE")
 
     print("Calculating metrics...")
