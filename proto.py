@@ -2,6 +2,8 @@ import os
 import sys
 import shutil
 from git import Repo
+import subprocess
+import statistics
 
 #returns a recursive list with all the files and sub-files inside a folder
 #Ex.:
@@ -41,12 +43,12 @@ def listJavaFiles(filesArray):
     return resultat
 
 #Clones the repository at path/temp
-#Then iterates between versions and calls iterateClasses()
+#Then iterates between versions and calls classMetrics()
 #Returns a String that will be saved as .csv by createCSV()
 def iterateVersions(url,path):
 
-    text = "Version,Class\n"
-    tempPath = path+"/temp"
+    text = "id_version,n_classes,m_c_BC\n"
+    tempPath = path+"\\temp"
 
     print("Cloning repository...")
 
@@ -60,28 +62,63 @@ def iterateVersions(url,path):
 
     print("Getting versions...")
     versionsList = repo.git.rev_list('MASTER').split("\n")
-    #getting only 10 versions
-    versionsList = versionsList[0:10] #Remove this line to calculate all versions
+    percentage = int(len(versionsList)/10) 
+    versionsList = versionsList[0:percentage] #looking at the last 10% versions
     print("DONE")
 
     print("Calculating metrics...")
+
+    iteration = 1
+    totalIterations = len(versionsList)
     for hexVersion in versionsList:
+        
+        print(str(iteration)+"/"+str(totalIterations)) 
         repo.git.reset('--hard',hexVersion)
-        text += iterateClasses(hexVersion,tempPath)
+        text += classMetrics(hexVersion,tempPath)
+        iteration += 1
+
     print("DONE")
+
+    repo.index.remove(tempPath,True,r=True)
 
     return text
 
-#Calls classMetrics() and writes the metrics of each class for a specific version
-def iterateClasses(version,tempPath):
+#Uses tp1.jar to write the metrics of each version
+def classMetrics(version,tempPath):
 
     resultat = ""
     classList = listJavaFiles(listFiles(tempPath))
+    subprocess.call(['java', '-jar', 'tp1.jar', 'temp'])
 
-    for javaClass in classList:
-        resultat += classMetrics(version,javaClass) + "\n"
+    median = analyseJavaCSV(version,tempPath+"/classes.csv")
+    resultat = version+","+str(len(classList))+","+median+"\n"
+
+    os.remove(tempPath+"/classes.csv")
+    os.remove(tempPath+"/methods.csv")
 
     return resultat
+
+#calculates the median from classes.csv
+def analyseJavaCSV(version,path):
+    
+    fileReader = open(path)
+    fileReader.readline()
+    classes_BC = []
+
+    for line in fileReader:
+        temp = line.split(",")
+        temp = temp[6]
+        
+        if "\n" in temp:
+            temp = temp.split("\n")[0]
+
+        classes_BC.append(temp)
+
+    fileReader.close()
+    median = statistics.median(classes_BC)
+
+    return median
+
 
 #Creates mertic.csv from text
 def createCSV(text,path):
@@ -97,16 +134,11 @@ def cleanTemp(path):
     
     print("Cleaning up...")
     try:
-        shutil.rmtree(path)
+        os.rmdir(path)
         print("DONE")
     except:
         print("WARNING: Cleaning was unsuccessful")
  
-#TODO
-def classMetrics(version,javaClass):
-
-    resultat = ""+version+","+javaClass
-    return resultat
 
 if __name__ == "__main__":
 
