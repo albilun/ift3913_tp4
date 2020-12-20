@@ -100,7 +100,7 @@ public class CodeAnalyzer
                         this.classes[i][j-1] = "METHOD= " + name;
                     //w/ javadoc
                     else {
-                        while (!(this.classes[i][j-1].isBlank())) 
+                        while (!(this.classes[i][j-1].isBlank()) && !(j == 1)) 
                             j--;
                         this.classes[i][j-1] = "METHOD= " + name;
                     }
