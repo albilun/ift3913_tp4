@@ -64,9 +64,9 @@ def iterateVersions(url,path):
     tempList = repo.git.rev_list('MASTER').split("\n")
     percentage = int(len(tempList)/10) 
     #This is the correct line of code but it doesnt work because Java table overflows?
-    #versionsList = random.sample(tempList,percentage) #looking at the last 10% versions
+    versionsList = random.sample(tempList,percentage) #looking at the last 10% versions
     #If you uncomment the line above, comment the line underneath this message
-    versionsList = tempList[0:10]
+    #versionsList = tempList[0:10]
     print("DONE")
 
     print("Calculating metrics...")
@@ -82,8 +82,6 @@ def iterateVersions(url,path):
 
     print("DONE")
 
-    repo.index.remove(tempPath,True,r=True)
-
     return text
 
 #Uses tp1.jar to write the metrics of each version
@@ -94,7 +92,7 @@ def classMetrics(version,tempPath):
     subprocess.call(['java', '-jar', 'tp1.jar', 'temp'])
 
     median = analyseJavaCSV(version,tempPath+"/classes.csv")
-    resultat = version+","+str(len(classList))+","+median+"\n"
+    resultat = version+","+str(len(classList))+","+str(median)+"\n"
 
     os.remove(tempPath+"/classes.csv")
     os.remove(tempPath+"/methods.csv")
@@ -115,7 +113,7 @@ def analyseJavaCSV(version,path):
         if "\n" in temp:
             temp = temp.split("\n")[0]
 
-        classes_BC.append(temp)
+        classes_BC.append(float(temp))
 
     fileReader.close()
     median = statistics.median(classes_BC)
@@ -146,8 +144,7 @@ def cleanTemp(path):
 if __name__ == "__main__":
 
     url = sys.argv[1]
-    path = sys.argv[2]
-
+    path = ".\\"
     text = iterateVersions(url,path)
     createCSV(text,path)
     cleanTemp(path+"\\temp")
